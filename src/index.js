@@ -29,6 +29,37 @@ function readFile(filepath) {
   });
 }
 
+function createColumnGeological(rows, totalHeaderRow) {
+  const __ = [];
+  const fieldDelimiter = defaultFieldDelimiter;
+  const h_main = rows[0].split(fieldDelimiter);
+  let prev_parent = "";
+
+  for (let i = 0; i < h_main.length; i += 1) {
+    let parent = h_main[i];
+    let type = "primitive";
+    let key = parent;
+    if (parent === "") {
+      parent = prev_parent;
+    }
+    if (parent[0] === "[" && parent[1] === "]") {
+      type = "array";
+      key = parent.split("[]")[1];
+    }
+    const subs = rows[totalHeaderRow - 1].split(fieldDelimiter);
+    const sub = subs[i];
+    if (sub !== "") {
+      __.push({ key, subkey: sub, type })
+    } else {
+      __.push({ key, type })
+    }
+
+    prev_parent = parent;
+
+  }
+  
+  return __
+}
 
 function convert(csvRow, csvHeadersRow = "") {
   let fieldDelimiter = defaultFieldDelimiter;
