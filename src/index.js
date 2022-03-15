@@ -15,8 +15,9 @@ function main() {
 
   let lines = parsedCSV.split(newLine);
   
-  for (let i = 0; i < lines.length; i++) {
-    const { filename, data } = convert(lines[i]);
+  for (let i = 1; i < lines.length; i++) {
+    const headers = lines[0];
+    const { filename, data } = convert(lines[i], headers);
     console.log("Writing:", filename, "=>", data);
     writeJSONFile(filename, data);
   }
@@ -29,24 +30,31 @@ function readFile(filepath) {
 }
 
 
-function convert(csvRow) {
+function convert(csvRow, csvHeadersRow = "") {
   let fieldDelimiter = defaultFieldDelimiter;
+  let headers = csvHeadersRow.split(fieldDelimiter);
   let col = csvRow.split(fieldDelimiter);
 
   const filename = col[0];
-  const data = {
-    "dna": col[1],
-    "rarity": col[2],
-    "name": col[3],
-    "description": col[4],
-    "image": col[5],
-    "edition": col[6],
-    "date": col[7],
-    "attributes": [],
+  const data = {}
+
+  if (headers.length > 0) {
+    for (let i = 1; i < headers.length; i++) {
+      const header = headers[i].toLowerCase();
+
+      if (header === "attributes") {
+        data.attributes = [];
+        for (let j = i; j < col.length; j++) {
+          if (col[j]) {
+            data.attributes.push({ name: col[j] });
+          }
+        }
+      } else {
+        data[header] = col[i];
+      }
+    }
   }
-  for (let i = 9; i < col.length; i++) {
-    data.attributes.push({ name: col[i] });
-  }
+
   return { filename, data }
 }
 
