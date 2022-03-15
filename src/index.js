@@ -10,14 +10,14 @@ main()
 function main() {
 
   const sampleCSVpath = __dirname + "/../samples/sample.csv";
+  const totalHeaderRow = 2
   const parsedCSV = readFile(sampleCSVpath);
-  console.log(parsedCSV);
 
   let lines = parsedCSV.split(newLine);
+  const geo = createColumnGeological(lines, totalHeaderRow);
   
-  for (let i = 1; i < lines.length; i++) {
-    const headers = lines[0];
-    const { filename, data } = convert(lines[i], headers);
+  for (let i = totalHeaderRow; i < lines.length; i++) {
+    const { filename, data } = convert(lines[i], geo);
     console.log("Writing:", filename, "=>", data);
     writeJSONFile(filename, data);
   }
@@ -61,27 +61,24 @@ function createColumnGeological(rows, totalHeaderRow) {
   return __
 }
 
-function convert(csvRow, csvHeadersRow = "") {
+function convert(csvRow, colgeo) {
   let fieldDelimiter = defaultFieldDelimiter;
-  let headers = csvHeadersRow.split(fieldDelimiter);
   let col = csvRow.split(fieldDelimiter);
 
   const filename = col[0];
   const data = {}
 
-  if (headers.length > 0) {
-    for (let i = 1; i < headers.length; i++) {
-      const header = headers[i].toLowerCase();
+  if (colgeo.length > 0) {
+    for (let i = 1; i < colgeo.length; i++) {
+      const header = colgeo[i];
+      const key =  header.key.toLowerCase();
 
-      if (header === "attributes") {
-        data.attributes = [];
-        for (let j = i; j < col.length; j++) {
-          if (col[j]) {
-            data.attributes.push({ name: col[j] });
-          }
-        }
-      } else {
-        data[header] = col[i];
+      if (header.type === "primitive") {
+        data[key] = col[i];
+      } else if (header.type === "array") {
+        if (!data[key]) { data[key] = [] }
+
+        data[key].push({ trait_type: header.subkey, value: col[i] });
       }
     }
   }
