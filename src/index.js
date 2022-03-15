@@ -45,7 +45,7 @@ function convert(csvRow) {
     "attributes": [],
   }
   for (let i = 9; i < col.length; i++) {
-    data.attributes.push(col[i])
+    data.attributes.push({ name: col[i] });
   }
   return { filename, data }
 }
